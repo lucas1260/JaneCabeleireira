@@ -49,7 +49,6 @@ form.card,.card-recibo{width:100%;max-width:520px;margin:0 auto;background:var(-
 .campo label{display:block;font-size:.86rem;font-weight:500;margin-bottom:6px;letter-spacing:.2px}
 .campo label .req{color:var(--gold-deep)}
 .campo input,.campo select{width:100%;min-width:0;font-family:var(--font-ui);font-size:1rem;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fdfbf8;color:var(--ink);transition:border-color .2s,box-shadow .2s,background .2s}
-.campo select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238f6f35' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;cursor:pointer}
 .campo input:hover,.campo select:hover{border-color:#d4c5ac}
 .campo input:focus,.campo select:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px rgba(176,141,79,.18)}
 .campo input::placeholder{color:#b6a996;font-weight:300}
@@ -65,7 +64,7 @@ form.card,.card-recibo{width:100%;max-width:520px;margin:0 auto;background:var(-
 .cartao-copia{background:#fff;border:1px dashed var(--gold);border-radius:10px;padding:14px;font-family:monospace;font-size:.88rem;white-space:pre-wrap;color:var(--ink);margin:14px 0;line-height:1.4}
 
 .tabela-wrap{overflow-x:auto;background:#fff;border-radius:12px;box-shadow:0 14px 35px -18px rgba(34,26,19,.3);border-top:3px solid var(--gold)}
-table{width:100%;border-collapse:collapse;min-width:680px}
+table{width:100%;border-collapse:collapse;min-width:600px}
 th,td{padding:11px 13px;text-align:left;font-size:.86rem;border-bottom:1px solid var(--line)}
 th{background:#faf6ef;font-weight:600;color:var(--gold-deep);letter-spacing:.4px;font-size:.76rem;text-transform:uppercase;white-space:nowrap}
 tr:last-child td{border-bottom:none}
@@ -91,12 +90,6 @@ tr:hover td{background:#fbf7f0}
 .resumo.a-receber{border-left-color:var(--gold)}
 .resumo.cancelado{border-left-color:var(--vermelho)}
 .resumo.cancelado .valor{color:var(--vermelho)}
-
-.prof-linha{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:.85rem}
-.prof-nome{width:130px;flex-shrink:0;color:var(--ink);font-weight:500}
-.prof-barra{flex:1;height:10px;background:#eee5d5;border-radius:999px;overflow:hidden}
-.prof-barra span{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold));border-radius:999px}
-.prof-valor{width:90px;text-align:right;font-weight:600;color:var(--gold-deep);white-space:nowrap}
 
 .filtro{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
 .filtro label{font-size:.88rem;font-weight:500;color:var(--ink-soft)}
@@ -147,12 +140,8 @@ footer strong{color:#d8c7a3;font-weight:500}
         <input type="text" id="f-nome" placeholder="Ex.: Maria Silva" autocomplete="name" required>
       </div>
       <div class="campo">
-        <label for="f-tel">Telefone / WhatsApp <span class="req">*</span></label>
-        <input type="tel" id="f-tel" placeholder="(81) 99999-9999" autocomplete="tel" inputmode="numeric" required>
-      </div>
-      <div class="linha-2">
-        <div class="campo"><label for="f-servico">Serviço</label><input type="text" id="f-servico" placeholder="Ex.: Corte + Escova" autocomplete="off"></div>
-        <div class="campo"><label for="f-prof">Profissional</label><select id="f-prof"></select></div>
+        <label for="f-servico">Serviço</label>
+        <input type="text" id="f-servico" placeholder="Ex.: Corte + Escova" autocomplete="off">
       </div>
       <div class="linha-2">
         <div class="campo"><label for="f-valor">Valor (R$)</label><input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00"></div>
@@ -177,7 +166,7 @@ footer strong{color:#d8c7a3;font-weight:500}
     <p class="sub" id="qtd-total">Carregando...</p>
     <div class="tabela-wrap">
       <table>
-        <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Serviço</th><th>Prof.</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+        <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
         <tbody id="lista-corpo"></tbody>
       </table>
     </div>
@@ -193,12 +182,8 @@ footer strong{color:#d8c7a3;font-weight:500}
         <input type="text" id="e-nome" required>
       </div>
       <div class="campo">
-        <label for="e-tel">Telefone / WhatsApp <span class="req">*</span></label>
-        <input type="tel" id="e-tel" required>
-      </div>
-      <div class="linha-2">
-        <div class="campo"><label for="e-servico">Serviço</label><input type="text" id="e-servico" placeholder="Digite o serviço" autocomplete="off"></div>
-        <div class="campo"><label for="e-prof">Profissional</label><select id="e-prof"></select></div>
+        <label for="e-servico">Serviço</label>
+        <input type="text" id="e-servico" placeholder="Digite o serviço" autocomplete="off">
       </div>
       <div class="linha-2">
         <div class="campo"><label for="e-valor">Valor (R$)</label><input type="number" id="e-valor" min="0" step="0.01"></div>
@@ -218,13 +203,9 @@ footer strong{color:#d8c7a3;font-weight:500}
       <input type="month" id="filtro-mes">
     </div>
     <div class="resumos" id="resumos"></div>
-    <div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 10px 25px -15px rgba(34,26,19,.25);margin-bottom:22px">
-      <strong style="font-size:.85rem;color:var(--gold-deep);letter-spacing:.5px">RECEBIDO POR PROFISSIONAL</strong>
-      <div id="prof-barras" style="margin-top:14px"></div>
-    </div>
     <div class="tabela-wrap">
       <table>
-        <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Serviço</th><th>Prof.</th><th>Valor</th><th>Status</th></tr></thead>
+        <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Serviço</th><th>Valor</th><th>Status</th></tr></thead>
         <tbody id="fin-corpo"></tbody>
       </table>
     </div>
@@ -237,7 +218,6 @@ footer strong{color:#d8c7a3;font-weight:500}
 <script>
 (function(){
   "use strict";
-  var CONFIG = { servicos:{}, profissionais:[] };
   var EDIT_ID = null;
 
   var toastEl = document.getElementById('toast'), toastTimer;
@@ -258,19 +238,6 @@ footer strong{color:#d8c7a3;font-weight:500}
   function api(url, opts){
     return fetch(url, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}))
       .then(function(r){ return r.json().then(function(j){ return {status:r.status, json:j}; }); });
-  }
-
-  /* Carrega serviços e profissionais do backend */
-  api('/api/config').then(function(r){
-    CONFIG = r.json || {servicos:{},profissionais:[]};
-    popularProfissionais('f-prof');
-    popularProfissionais('e-prof');
-  });
-  function popularProfissionais(idProf){
-    var pSel = document.getElementById(idProf);
-    if (!pSel) return;
-    pSel.innerHTML = '<option value="">Selecione...</option>' +
-      (CONFIG.profissionais||[]).map(function(p){ return '<option>'+p+'</option>'; }).join('');
   }
 
   /* Roteador por hash */
@@ -299,12 +266,11 @@ footer strong{color:#d8c7a3;font-weight:500}
   window.addEventListener('hashchange', rota);
 
   /* Gerar texto do recibo para WhatsApp */
-  function montarTextoRecibo(nome, dataHora, servico, profissional, valor){
+  function montarTextoRecibo(nome, dataHora, servico, valor){
     var dtFmt = fmtData(dataHora);
     var txt = "Olá " + nome + "! Seu agendamento na Jane Cabeleireira Hair está confirmado.\n" +
               "📅 Data e hora: " + dtFmt;
     if (servico) txt += "\n✨ Serviço: " + servico;
-    if (profissional) txt += "\n👩‍🦰 Profissional: " + profissional;
     if (valor && parseFloat(valor) > 0) txt += "\n💰 Valor: " + fmtMoeda(valor);
     txt += "\n\nAguardamos sua visita! Responda caso precise remarcar.";
     return txt;
@@ -316,14 +282,13 @@ footer strong{color:#d8c7a3;font-weight:500}
     var btn = document.getElementById('btn-cadastro');
     var dados = {
       nome_cliente: document.getElementById('f-nome').value.trim(),
-      telefone: document.getElementById('f-tel').value.trim(),
+      telefone: "Não informado",
       servico: document.getElementById('f-servico').value.trim(),
-      profissional: document.getElementById('f-prof').value,
+      profissional: "",
       valor: document.getElementById('f-valor').value,
       data_hora: document.getElementById('f-data').value
     };
     if (!dados.nome_cliente){ toast('Informe o nome do(a) cliente.'); document.getElementById('f-nome').focus(); return; }
-    if (!dados.telefone){ toast('Informe o telefone/WhatsApp.'); document.getElementById('f-tel').focus(); return; }
     if (!dados.data_hora){ toast('Escolha a data e hora.'); document.getElementById('f-data').focus(); return; }
     
     btn.disabled = true; btn.textContent = 'Cadastrando...';
@@ -331,7 +296,7 @@ footer strong{color:#d8c7a3;font-weight:500}
       .then(function(r){
         if (r.json && r.json.ok){
           toast('Agendamento cadastrado com sucesso!');
-          var textoMsg = montarTextoRecibo(dados.nome_cliente, dados.data_hora, dados.servico, dados.profissional, dados.valor);
+          var textoMsg = montarTextoRecibo(dados.nome_cliente, dados.data_hora, dados.servico, dados.valor);
           document.getElementById('texto-recibo').textContent = textoMsg;
           document.getElementById('form-cadastro').style.display = 'none';
           document.getElementById('card-recibo').style.display = 'block';
@@ -359,9 +324,9 @@ footer strong{color:#d8c7a3;font-weight:500}
       var rows = r.json || [];
       document.getElementById('qtd-total').textContent = rows.length + ' agendamento(s) cadastrado(s).';
       var corpo = document.getElementById('lista-corpo');
-      if (!rows.length){ corpo.innerHTML = '<tr><td colspan="7" class="vazio">Nenhum agendamento ainda.</td></tr>'; return; }
+      if (!rows.length){ corpo.innerHTML = '<tr><td colspan="6" class="vazio">Nenhum agendamento ainda.</td></tr>'; return; }
       corpo.innerHTML = rows.map(function(a){
-        var botoes = '<button class="acao" onclick="window.__copiarRecibo('+a.id+',\''+(a.nome_cliente||'').replace(/'/g,"\\'")+'\',\''+(a.data_hora||'')+'\',\''+(a.servico||'').replace(/'/g,"\\'")+'\',\''+(a.profissional||'').replace(/'/g,"\\'")+'\','+(a.valor||0)+')">Copiar Recibo</button>';
+        var botoes = '<button class="acao" onclick="window.__copiarRecibo('+a.id+',\''+(a.nome_cliente||'').replace(/'/g,"\\'")+'\',\''+(a.data_hora||'')+'\',\''+(a.servico||'').replace(/'/g,"\\'")+'\','+(a.valor||0)+')">Copiar Recibo</button>';
         botoes += '<button class="acao" onclick="window.__editar('+a.id+')">Editar</button>';
         if (a.status === 'agendado'){
           botoes += '<button class="acao ok" onclick="window.__status('+a.id+',\'concluido\')">Concluir</button>';
@@ -370,13 +335,13 @@ footer strong{color:#d8c7a3;font-weight:500}
           botoes += '<button class="acao" onclick="window.__status('+a.id+',\'agendado\')">Reabrir</button>';
         }
         botoes += '<button class="acao perigo" onclick="window.__excluir('+a.id+')">Excluir</button>';
-        return '<tr><td>'+fmtData(a.data_hora)+'</td><td>'+a.nome_cliente+'</td><td>'+(a.servico||'—')+'</td><td>'+(a.profissional||'—')+'</td><td>'+fmtMoeda(a.valor)+'</td><td>'+statusTag(a.status)+'</td><td style="white-space:nowrap">'+botoes+'</td></tr>';
+        return '<tr><td>'+fmtData(a.data_hora)+'</td><td>'+a.nome_cliente+'</td><td>'+(a.servico||'—')+'</td><td>'+fmtMoeda(a.valor)+'</td><td>'+statusTag(a.status)+'</td><td style="white-space:nowrap">'+botoes+'</td></tr>';
       }).join('');
     });
   }
 
-  window.__copiarRecibo = function(id, nome, dataHora, servico, profissional, valor){
-    var texto = montarTextoRecibo(nome, dataHora, servico, profissional, valor);
+  window.__copiarRecibo = function(id, nome, dataHora, servico, valor){
+    var texto = montarTextoRecibo(nome, dataHora, servico, valor);
     navigator.clipboard.writeText(texto).then(function(){
       toast('Recibo do agendamento #' + id + ' copiado!');
     }).catch(function(){
@@ -402,9 +367,7 @@ footer strong{color:#d8c7a3;font-weight:500}
       var a = r.json;
       if (!a || a.erro){ toast('Agendamento não encontrado.'); location.hash='#/agendamentos'; return; }
       document.getElementById('e-nome').value = a.nome_cliente;
-      document.getElementById('e-tel').value = a.telefone;
       document.getElementById('e-servico').value = a.servico || '';
-      document.getElementById('e-prof').value = a.profissional || '';
       document.getElementById('e-valor').value = a.valor;
       document.getElementById('e-data').value = a.data_hora;
     });
@@ -414,9 +377,9 @@ footer strong{color:#d8c7a3;font-weight:500}
     var btn = document.getElementById('btn-salvar');
     var dados = {
       nome_cliente: document.getElementById('e-nome').value.trim(),
-      telefone: document.getElementById('e-tel').value.trim(),
+      telefone: "Não informado",
       servico: document.getElementById('e-servico').value,
-      profissional: document.getElementById('e-prof').value,
+      profissional: "",
       valor: document.getElementById('e-valor').value,
       data_hora: document.getElementById('e-data').value
     };
@@ -446,16 +409,10 @@ footer strong{color:#d8c7a3;font-weight:500}
         '<div class="resumo a-receber"><div class="rotulo">A Receber (agendado)</div><div class="valor">'+fmtMoeda(d.a_receber)+'</div></div>' +
         '<div class="resumo cancelado"><div class="rotulo">Cancelado</div><div class="valor">'+fmtMoeda(d.cancelado)+'</div></div>' +
         '<div class="resumo"><div class="rotulo">Total Geral</div><div class="valor">'+fmtMoeda(d.total_geral)+'</div></div>';
-      var max = Math.max.apply(null, (d.por_profissional||[]).map(function(p){return p.valor;}).concat([1]));
-      document.getElementById('prof-barras').innerHTML = (d.por_profissional && d.por_profissional.length)
-        ? d.por_profissional.map(function(p){
-            return '<div class="prof-linha"><span class="prof-nome">'+p.nome+'</span><div class="prof-barra"><span style="width:'+(p.valor/max*100)+'%"></span></div><span class="prof-valor">'+fmtMoeda(p.valor)+'</span></div>';
-          }).join('')
-        : '<p style="color:var(--ink-soft);font-size:.85rem">Nenhum valor concluído no período.</p>';
       var corpo = document.getElementById('fin-corpo');
-      if (!d.lista || !d.lista.length){ corpo.innerHTML = '<tr><td colspan="6" class="vazio">Sem agendamentos no período.</td></tr>'; return; }
+      if (!d.lista || !d.lista.length){ corpo.innerHTML = '<tr><td colspan="5" class="vazio">Sem agendamentos no período.</td></tr>'; return; }
       corpo.innerHTML = d.lista.map(function(a){
-        return '<tr><td>'+fmtData(a.data_hora)+'</td><td>'+a.nome_cliente+'</td><td>'+(a.servico||'—')+'</td><td>'+(a.profissional||'—')+'</td><td>'+fmtMoeda(a.valor)+'</td><td>'+statusTag(a.status)+'</td></tr>';
+        return '<tr><td>'+fmtData(a.data_hora)+'</td><td>'+a.nome_cliente+'</td><td>'+(a.servico||'—')+'</td><td>'+fmtMoeda(a.valor)+'</td><td>'+statusTag(a.status)+'</td></tr>';
       }).join('');
     });
   }
