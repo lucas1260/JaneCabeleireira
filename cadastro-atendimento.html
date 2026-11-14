@@ -155,7 +155,7 @@ footer strong{color:#d8c7a3;font-weight:500}
         <div class="campo"><label for="f-prof">Profissional</label><select id="f-prof"></select></div>
       </div>
       <div class="linha-2">
-        <div class="campo"><label for="f-valor">Valor (R$)</label><input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00"></div>
+        <div class="campo"><label for="f-valor">Valor (R\$)</label><input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00"></div>
         <div class="campo"><label for="f-data">Data e Hora <span class="req">*</span></label><input type="datetime-local" id="f-data" required></div>
       </div>
       <button type="submit" class="btn" id="btn-cadastro">Cadastrar Atendimento</button>
@@ -167,7 +167,7 @@ footer strong{color:#d8c7a3;font-weight:500}
       <p style="font-size:.85rem;color:var(--ink-soft);">Copie a mensagem abaixo e envie para o WhatsApp do cliente:</p>
       <div class="cartao-copia" id="texto-recibo"></div>
       <button type="button" class="btn" id="btn-copiar" style="background:linear-gradient(135deg,#3a6b4a,#4a6b3a)">Copiar Mensagem</button>
-      <button type="button" class="btn btn-secundario" style="margin-top:8px" onclick="document.getElementById('card-recibo').style.display='none';document.getElementById('form-cadastro').reset();">Cadastrar Outro</button>
+      <button type="button" class="btn btn-secundario" style="margin-top:8px" onclick="document.getElementById('card-recibo').style.display='none';document.getElementById('form-cadastro').style.display='block';document.getElementById('form-cadastro').reset();">Cadastrar Outro</button>
     </div>
   </section>
 
@@ -201,7 +201,7 @@ footer strong{color:#d8c7a3;font-weight:500}
         <div class="campo"><label for="e-prof">Profissional</label><select id="e-prof"></select></div>
       </div>
       <div class="linha-2">
-        <div class="campo"><label for="e-valor">Valor (R$)</label><input type="number" id="e-valor" min="0" step="0.01"></div>
+        <div class="campo"><label for="e-valor">Valor (R\$)</label><input type="number" id="e-valor" min="0" step="0.01"></div>
         <div class="campo"><label for="e-data">Data e Hora <span class="req">*</span></label><input type="datetime-local" id="e-data" required></div>
       </div>
       <button type="submit" class="btn" id="btn-salvar">Salvar Alterações</button>
@@ -372,99 +372,3 @@ footer strong{color:#d8c7a3;font-weight:500}
         }
         botoes += '<button class="acao perigo" onclick="window.__excluir('+a.id+')">Excluir</button>';
         return '<tr><td>'+fmtData(a.data_hora)+'</td><td>'+a.nome_cliente+'</td><td>'+(a.servico||'—')+'</td><td>'+(a.profissional||'—')+'</td><td>'+fmtMoeda(a.valor)+'</td><td>'+statusTag(a.status)+'</td><td style="white-space:nowrap">'+botoes+'</td></tr>';
-      }).join('');
-    });
-  }
-
-  window.__copiarRecibo = function(id, nome, dataHora, servico, profissional, valor){
-    var texto = montarTextoRecibo(nome, dataHora, servico, profissional, valor);
-    navigator.clipboard.writeText(texto).then(function(){
-      toast('Recibo do agendamento #' + id + ' copiado!');
-    }).catch(function(){
-      toast('Erro ao copiar.');
-    });
-  };
-
-  window.__editar = function(id){ location.hash = '#/editar/'+id; };
-  window.__status = function(id, status){
-    var msg = {cancelado:'Cancelar este agendamento?', concluido:'Marcar como concluído?', agendado:'Reabrir agendamento?'}[status] || 'Confirmar?';
-    if (!confirm(msg)) return;
-    api('/api/agendamentos/'+id+'/status', {method:'POST', body:JSON.stringify({status:status})})
-      .then(function(r){ toast((r.json && r.json.ok) ? 'Status atualizado.' : 'Erro.'); carregarLista(); });
-  };
-  window.__excluir = function(id){
-    if (!confirm('Excluir este agendamento permanentemente?')) return;
-    api('/api/agendamentos/'+id, {method:'DELETE'}).then(function(r){ toast((r.json && r.json.ok) ? 'Excluído.' : 'Erro.'); carregarLista(); });
-  };
-
-  /* Editar */
-  function carregarEdicao(id){
-    api('/api/agendamentos/'+id).then(function(r){
-      var a = r.json;
-      if (!a || a.erro){ toast('Agendamento não encontrado.'); location.hash='#/agendamentos'; return; }
-      document.getElementById('e-nome').value = a.nome_cliente;
-      document.getElementById('e-tel').value = a.telefone;
-      document.getElementById('e-servico').value = a.servico || '';
-      document.getElementById('e-prof').value = a.profissional || '';
-      document.getElementById('e-valor').value = a.valor;
-      document.getElementById('e-data').value = a.data_hora;
-    });
-  }
-  document.getElementById('form-editar').addEventListener('submit', function(e){
-    e.preventDefault();
-    var btn = document.getElementById('btn-salvar');
-    var dados = {
-      nome_cliente: document.getElementById('e-nome').value.trim(),
-      telefone: document.getElementById('e-tel').value.trim(),
-      servico: document.getElementById('e-servico').value,
-      profissional: document.getElementById('e-prof').value,
-      valor: document.getElementById('e-valor').value,
-      data_hora: document.getElementById('e-data').value
-    };
-    btn.disabled = true; btn.textContent = 'Salvando...';
-    api('/api/agendamentos/'+EDIT_ID, {method:'PUT', body:JSON.stringify(dados)})
-      .then(function(r){
-        if (r.json && r.json.ok){ toast('Agendamento atualizado!'); location.hash = '#/agendamentos'; }
-        else toast(((r.json && r.json.erros)||['Erro ao salvar.']).join(' '));
-      })
-      .catch(function(){ toast('Servidor indisponível.'); })
-      .finally(function(){ btn.disabled = false; btn.textContent = 'Salvar Alterações'; });
-  });
-
-  /* Financeiro */
-  var mesInput = document.getElementById('filtro-mes');
-  var hoje = new Date();
-  mesInput.value = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
-  mesInput.addEventListener('change', carregarFinanceiro);
-
-  function carregarFinanceiro(){
-    var mes = mesInput.value;
-    var url = '/api/financeiro' + (mes ? '?mes='+mes : '');
-    api(url).then(function(r){
-      var d = r.json; if (!d) return;
-      document.getElementById('resumos').innerHTML =
-        '<div class="resumo recebido"><div class="rotulo">Recebido (concluído)</div><div class="valor">'+fmtMoeda(d.recebido)+'</div></div>' +
-        '<div class="resumo a-receber"><div class="rotulo">A Receber (agendado)</div><div class="valor">'+fmtMoeda(d.a_receber)+'</div></div>' +
-        '<div class="resumo cancelado"><div class="rotulo">Cancelado</div><div class="valor">'+fmtMoeda(d.cancelado)+'</div></div>' +
-        '<div class="resumo"><div class="rotulo">Total Geral</div><div class="valor">'+fmtMoeda(d.total_geral)+'</div></div>';
-      var max = Math.max.apply(null, (d.por_profissional||[]).map(function(p){return p.valor;}).concat([1]));
-      document.getElementById('prof-barras').innerHTML = (d.por_profissional && d.por_profissional.length)
-        ? d.por_profissional.map(function(p){
-            return '<div class="prof-linha"><span class="prof-nome">'+p.nome+'</span><div class="prof-barra"><span style="width:'+(p.valor/max*100)+'%"></span></div><span class="prof-valor">'+fmtMoeda(p.valor)+'</span></div>';
-          }).join('')
-        : '<p style="color:var(--ink-soft);font-size:.85rem">Nenhum valor concluído no período.</p>';
-      var corpo = document.getElementById('fin-corpo');
-      if (!d.lista || !d.lista.length){ corpo.innerHTML = '<tr><td colspan="6" class="vazio">Sem agendamentos no período.</td></tr>'; return; }
-      corpo.innerHTML = d.lista.map(function(a){
-        return '<tr><td>'+fmtData(a.data_hora)+'</td><td>'+a.nome_cliente+'</td><td>'+(a.servico||'—')+'</td><td>'+(a.profissional||'—')+'</td><td>'+fmtMoeda(a.valor)+'</td><td>'+statusTag(a.status)+'</td></tr>';
-      }).join('');
-    });
-  }
-
-  rota();
-})();
-</script>
-</body>
-</html>
-
-```
