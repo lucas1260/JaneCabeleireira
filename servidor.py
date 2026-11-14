@@ -40,7 +40,6 @@ if _NEED_INSTALL:
         print("[OK] Dependências instaladas.")
     except Exception as e:
         print(f"[ERRO] Falha ao instalar: {e}")
-        input("\nPressione Enter para fechar...")
         sys.exit(1)
 
 from flask import Flask, request, jsonify, g
@@ -55,13 +54,13 @@ SERVICOS = {}  # serviço é digitado livremente no formulário
 PROFISSIONAIS = ["Jane"]
 
 # ---- WhatsApp (Twilio configurado; deixe vazio para mock) ----
-WHATSAPP_TOKEN        = os.environ.get("WHATSAPP_TOKEN", "")
+WHATSAPP_TOKEN         = os.environ.get("WHATSAPP_TOKEN", "")
 WHATSAPP_PHONE_NUMBER_ID = os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "")
-TWILIO_SID            = os.environ.get("TWILIO_SID", "AC6d73699454ec455af37676d5abb1a698")
-TWILIO_TOKEN          = os.environ.get("TWILIO_TOKEN", "561103dbc25509302114468466645a02")
-TWILIO_FROM           = os.environ.get("TWILIO_FROM", "+17372508034")
-WHATSAPP_API_VERSION  = os.environ.get("WHATSAPP_API_VERSION", "v21.0")
-WHATSAPP_TIMEOUT      = int(os.environ.get("WHATSAPP_TIMEOUT", "15"))
+TWILIO_SID             = os.environ.get("TWILIO_SID", "AC6d73699454ec455af37676d5abb1a698")
+TWILIO_TOKEN           = os.environ.get("TWILIO_TOKEN", "561103dbc25509302114468466645a02")
+TWILIO_FROM            = os.environ.get("TWILIO_FROM", "+17372508034")
+WHATSAPP_API_VERSION   = os.environ.get("WHATSAPP_API_VERSION", "v21.0")
+WHATSAPP_TIMEOUT       = int(os.environ.get("WHATSAPP_TIMEOUT", "15"))
 
 if TWILIO_SID and TWILIO_TOKEN:
     _PROVEDOR_PADRAO = "twilio"
@@ -75,7 +74,6 @@ app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
 
 # ============================================================
 #  BANCO DE DADOS — camada única (PostgreSQL OU SQLite)
-#  Todo SQL usa %s como placeholder; o wrapper converte p/ SQLite.
 # ============================================================
 SCHEMA_COLS = """
     nome_cliente    TEXT NOT NULL,
@@ -186,12 +184,10 @@ def formatar_data_hora(iso):
     except Exception:
         return iso.replace("T", " ")
 
-def montar_mensagem(nome, data_hora, servico, profissional):
+def montar_mensagem(nome, data_hora, servico):
     extra = ""
     if servico:
         extra += f"\nServiço: {servico}"
-    if profissional:
-        extra += f"\nProfissional: {profissional}"
     return (
         f"Olá {nome}! Seu agendamento na {NOME_SALAO} está confirmado.\n"
         f"Data e hora: {formatar_data_hora(data_hora)}"
@@ -272,13 +268,9 @@ def api_config():
 def validar(dados):
     erros = []
     nome = (dados.get("nome_cliente") or "").strip()
-    telefone = (dados.get("telefone") or "").strip()
     data_hora = (dados.get("data_hora") or "").strip()
     if not nome:
         erros.append("Informe o nome do(a) cliente.")
-    tel = normalizar_telefone(telefone)
-    if not tel or len(tel) < 12:
-        erros.append("Informe um telefone válido (com DDD) para o WhatsApp.")
     if not data_hora or "T" not in data_hora:
         erros.append("Informe a data e hora do atendimento.")
     try:
@@ -286,9 +278,9 @@ def validar(dados):
     except (ValueError, TypeError):
         valor = 0.0
     return erros, {
-        "nome_cliente": nome, "telefone": tel, "data_hora": data_hora,
+        "nome_cliente": nome, "telefone": "Não informado", "data_hora": data_hora,
         "servico": (dados.get("servico") or "").strip(),
-        "profissional": (dados.get("profissional") or "").strip(),
+        "profissional": "",
         "valor": valor,
     }
 
@@ -302,19 +294,19 @@ def agendamentos():
             return jsonify({"ok": False, "erros": erros}), 400
         cur = db.execute(
             """INSERT INTO agendamentos (nome_cliente, telefone, data_hora, servico, profissional, valor)
-               VALUES (%s,%s,%s,%s,%s,%s) RETURNING id""",
+                VALUES (%s,%s,%s,%s,%s,%s) RETURNING id""",
             (vals["nome_cliente"], vals["telefone"], vals["data_hora"],
              vals["servico"], vals["profissional"], vals["valor"]),
         )
         aid = dict(cur.fetchone())["id"]
         db.commit()
-        texto = montar_mensagem(vals["nome_cliente"], vals["data_hora"], vals["servico"], vals["profissional"])
+        texto = montar_mensagem(vals["nome_cliente"], vals["data_hora"], vals["servico"])
         enviado, erro = disparar_whatsapp(vals["telefone"], texto)
         db.execute("UPDATE agendamentos SET whatsapp_enviado=%s, whatsapp_erro=%s WHERE id=%s",
                    (1 if enviado else 0, erro, aid))
         db.commit()
         return jsonify({"ok": True, "id": aid, "whatsapp_enviado": enviado, "whatsapp_erro": erro,
-                        "mensagem": f"Agendamento #{aid} cadastrado." + (" WhatsApp enviado." if enviado else "")})
+                        "mensagem": f"Agendamento #{aid} cadastrado."})
     cur = db.execute("SELECT * FROM agendamentos ORDER BY data_hora DESC")
     return jsonify(rows_as_dicts(cur))
 
@@ -372,14 +364,11 @@ def financeiro():
     cur = db.execute(f"SELECT * FROM agendamentos {filtro} ORDER BY data_hora DESC", params)
     rows = rows_as_dicts(cur)
     total = recebido = a_receber = cancelado = 0.0
-    por_prof = {}
     for r in rows:
         v = float(r.get("valor") or 0)
         total += v
         if r.get("status") == "concluido":
             recebido += v
-            p = r.get("profissional") or "Não informado"
-            por_prof[p] = por_prof.get(p, 0) + v
         elif r.get("status") == "agendado":
             a_receber += v
         elif r.get("status") == "cancelado":
@@ -390,7 +379,7 @@ def financeiro():
         "recebido": round(recebido, 2),
         "a_receber": round(a_receber, 2),
         "cancelado": round(cancelado, 2),
-        "por_profissional": [{"nome": k, "valor": round(v, 2)} for k, v in sorted(por_prof.items(), key=lambda x: -x[1])],
+        "por_profissional": [],
         "quantidade": len(rows),
         "lista": rows,
     })
@@ -416,4 +405,3 @@ if __name__ == "__main__":
         print(f"\n[ERRO] {e}")
         import traceback
         traceback.print_exc()
-    input("\nPressione Enter para fechar esta janela...")
