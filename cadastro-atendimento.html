@@ -42,7 +42,7 @@ main{flex:1;width:100%;max-width:1000px;margin:0 auto;padding:30px 16px}
 h2{font-family:var(--font-disp);font-size:1.7rem;text-align:center;margin-bottom:4px}
 .sub{text-align:center;color:var(--ink-soft);font-size:.88rem;margin-bottom:24px;font-weight:300}
 
-form.card{width:100%;max-width:520px;margin:0 auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px 26px 28px;border-top:3px solid var(--gold);position:relative}
+form.card,.card-recibo{width:100%;max-width:520px;margin:0 auto;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px 26px 28px;border-top:3px solid var(--gold);position:relative}
 .form-icone{width:52px;height:52px;margin:-56px auto 8px;background:var(--surface);border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -8px rgba(34,26,19,.3)}
 .form-icone svg{width:26px;height:26px;stroke:var(--gold-deep)}
 .campo{margin-bottom:16px}
@@ -59,6 +59,10 @@ form.card{width:100%;max-width:520px;margin:0 auto;background:var(--surface);bor
 .btn:active{transform:translateY(1px)}
 .btn:disabled{opacity:.6;cursor:wait}
 .btn-secundario{background:linear-gradient(135deg,#5a4a38,#7a6a58);box-shadow:0 10px 22px -10px rgba(90,74,56,.6)}
+
+/* Cartão de Recibo Copiável */
+.card-recibo{margin-top:20px;display:none;background:#faf6ef;border-top-color:var(--verde)}
+.cartao-copia{background:#fff;border:1px dashed var(--gold);border-radius:10px;padding:14px;font-family:monospace;font-size:.88rem;white-space:pre-wrap;color:var(--ink);margin:14px 0;line-height:1.4}
 
 .tabela-wrap{overflow-x:auto;background:#fff;border-radius:12px;box-shadow:0 14px 35px -18px rgba(34,26,19,.3);border-top:3px solid var(--gold)}
 table{width:100%;border-collapse:collapse;min-width:680px}
@@ -108,7 +112,7 @@ footer strong{color:#d8c7a3;font-weight:500}
 @media (max-width:520px){
   .linha-2{grid-template-columns:1fr}
   .nav a{padding:12px 10px;font-size:.82rem}
-  form.card{padding:28px 20px 24px}
+  form.card,.card-recibo{padding:28px 20px 24px}
 }
 </style>
 </head>
@@ -137,7 +141,7 @@ footer strong{color:#d8c7a3;font-weight:500}
         </svg>
       </div>
       <h2>Cadastro de Atendimento</h2>
-      <p class="sub">Preencha os dados — a confirmação é enviada pelo WhatsApp.</p>
+      <p class="sub">Preencha os dados — gere o recibo para enviar ao cliente.</p>
       <div class="campo">
         <label for="f-nome">Nome do(a) Cliente <span class="req">*</span></label>
         <input type="text" id="f-nome" placeholder="Ex.: Maria Silva" autocomplete="name" required>
@@ -154,8 +158,17 @@ footer strong{color:#d8c7a3;font-weight:500}
         <div class="campo"><label for="f-valor">Valor (R$)</label><input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00"></div>
         <div class="campo"><label for="f-data">Data e Hora <span class="req">*</span></label><input type="datetime-local" id="f-data" required></div>
       </div>
-      <button type="submit" class="btn" id="btn-cadastro">Cadastrar</button>
+      <button type="submit" class="btn" id="btn-cadastro">Cadastrar Atendimento</button>
     </form>
+
+    <!-- Cartão Recibo Gerado Após o Cadastro -->
+    <div class="card-recibo" id="card-recibo">
+      <h3 style="font-family:var(--font-disp);font-size:1.3rem;color:var(--verde);margin-bottom:4px;">Agendamento Realizado!</h3>
+      <p style="font-size:.85rem;color:var(--ink-soft);">Copie a mensagem abaixo e envie para o WhatsApp do cliente:</p>
+      <div class="cartao-copia" id="texto-recibo"></div>
+      <button type="button" class="btn" id="btn-copiar" style="background:linear-gradient(135deg,#3a6b4a,#4a6b3a)">Copiar Mensagem</button>
+      <button type="button" class="btn btn-secundario" style="margin-top:8px" onclick="document.getElementById('card-recibo').style.display='none';document.getElementById('form-cadastro').reset();">Cadastrar Outro</button>
+    </div>
   </section>
 
   <!-- ===== View: Agendamentos ===== -->
@@ -285,14 +298,26 @@ footer strong{color:#d8c7a3;font-weight:500}
   }
   window.addEventListener('hashchange', rota);
 
-  /* Cadastro */
+  /* Gerar texto do recibo para WhatsApp */
+  function montarTextoRecibo(nome, dataHora, servico, profissional, valor){
+    var dtFmt = fmtData(dataHora);
+    var txt = "Olá " + nome + "! Seu agendamento na Jane Cabeleireira Hair está confirmado.\n" +
+              "📅 Data e hora: " + dtFmt;
+    if (servico) txt += "\n✨ Serviço: " + servico;
+    if (profissional) txt += "\n👩‍🦰 Profissional: " + profissional;
+    if (valor && parseFloat(valor) > 0) txt += "\n💰 Valor: " + fmtMoeda(valor);
+    txt += "\n\nAguardamos sua visita! Responda caso precise remarcar.";
+    return txt;
+  }
+
+  /* Cadastro com Exibição do Cartão Copiável */
   document.getElementById('form-cadastro').addEventListener('submit', function(e){
     e.preventDefault();
     var btn = document.getElementById('btn-cadastro');
     var dados = {
       nome_cliente: document.getElementById('f-nome').value.trim(),
       telefone: document.getElementById('f-tel').value.trim(),
-      servico: document.getElementById('f-servico').value,
+      servico: document.getElementById('f-servico').value.trim(),
       profissional: document.getElementById('f-prof').value,
       valor: document.getElementById('f-valor').value,
       data_hora: document.getElementById('f-data').value
@@ -300,17 +325,36 @@ footer strong{color:#d8c7a3;font-weight:500}
     if (!dados.nome_cliente){ toast('Informe o nome do(a) cliente.'); document.getElementById('f-nome').focus(); return; }
     if (!dados.telefone){ toast('Informe o telefone/WhatsApp.'); document.getElementById('f-tel').focus(); return; }
     if (!dados.data_hora){ toast('Escolha a data e hora.'); document.getElementById('f-data').focus(); return; }
-    btn.disabled = true; btn.textContent = 'Enviando...';
+    
+    btn.disabled = true; btn.textContent = 'Cadastrando...';
     api('/api/agendamentos', {method:'POST', body:JSON.stringify(dados)})
       .then(function(r){
-        if (r.json && r.json.ok){ toast('Agendamento cadastrado! Confirmação via WhatsApp disparada.'); document.getElementById('form-cadastro').reset(); }
-        else toast(((r.json && r.json.erros)||['Erro ao cadastrar.']).join(' '));
+        if (r.json && r.json.ok){
+          toast('Agendamento cadastrado com sucesso!');
+          // Exibe o cartão copiável com o recibo
+          var textoMsg = montarTextoRecibo(dados.nome_cliente, dados.data_hora, dados.servico, dados.profissional, dados.valor);
+          document.getElementById('texto-recibo').textContent = textoMsg;
+          document.getElementById('form-cadastro').style.display = 'none';
+          document.getElementById('card-recibo').style.display = 'block';
+        } else {
+          toast(((r.json && r.json.erros)||['Erro ao cadastrar.']).join(' '));
+        }
       })
-      .catch(function(){ toast('Servidor indisponível. Verifique se o backend está rodando.'); })
-      .finally(function(){ btn.disabled = false; btn.textContent = 'Cadastrar'; });
+      .catch(function(){ toast('Servidor indisponível.'); })
+      .finally(function(){ btn.disabled = false; btn.textContent = 'Cadastrar Atendimento'; });
   });
 
-  /* Lista de agendamentos + ações */
+  /* Botão Copiar Mensagem */
+  document.getElementById('btn-copiar').addEventListener('click', function(){
+    var texto = document.getElementById('texto-recibo').textContent;
+    navigator.clipboard.writeText(texto).then(function(){
+      toast('Mensagem copiada para a área de transferência!');
+    }).catch(function(){
+      toast('Erro ao copiar automaticamente.');
+    });
+  });
+
+  /* Lista de agendamentos + ações + botão de copiar recibo antigo */
   function carregarLista(){
     api('/api/agendamentos').then(function(r){
       var rows = r.json || [];
@@ -318,7 +362,8 @@ footer strong{color:#d8c7a3;font-weight:500}
       var corpo = document.getElementById('lista-corpo');
       if (!rows.length){ corpo.innerHTML = '<tr><td colspan="7" class="vazio">Nenhum agendamento ainda.</td></tr>'; return; }
       corpo.innerHTML = rows.map(function(a){
-        var botoes = '<button class="acao" onclick="window.__editar('+a.id+')">Editar</button>';
+        var botoes = '<button class="acao" onclick="window.__copiarRecibo('+a.id+',\''+(a.nome_cliente||'').replace(/'/g,"\\'")+'\',\''+(a.data_hora||'')+'\',\''+(a.servico||'').replace(/'/g,"\\'")+'\',\''+(a.profissional||'').replace(/'/g,"\\'")+'\','+(a.valor||0)+')">Copiar Recibo</button>';
+        botoes += '<button class="acao" onclick="window.__editar('+a.id+')">Editar</button>';
         if (a.status === 'agendado'){
           botoes += '<button class="acao ok" onclick="window.__status('+a.id+',\'concluido\')">Concluir</button>';
           botoes += '<button class="acao perigo" onclick="window.__status('+a.id+',\'cancelado\')">Cancelar</button>';
@@ -330,6 +375,16 @@ footer strong{color:#d8c7a3;font-weight:500}
       }).join('');
     });
   }
+
+  window.__copiarRecibo = function(id, nome, dataHora, servico, profissional, valor){
+    var texto = montarTextoRecibo(nome, dataHora, servico, profissional, valor);
+    navigator.clipboard.writeText(texto).then(function(){
+      toast('Recibo do agendamento #' + id + ' copiado!');
+    }).catch(function(){
+      toast('Erro ao copiar.');
+    });
+  };
+
   window.__editar = function(id){ location.hash = '#/editar/'+id; };
   window.__status = function(id, status){
     var msg = {cancelado:'Cancelar este agendamento?', concluido:'Marcar como concluído?', agendado:'Reabrir agendamento?'}[status] || 'Confirmar?';
@@ -411,3 +466,5 @@ footer strong{color:#d8c7a3;font-weight:500}
 </script>
 </body>
 </html>
+
+```
